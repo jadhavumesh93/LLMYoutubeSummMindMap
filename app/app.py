@@ -1,17 +1,14 @@
 from fastapi import FastAPI
-# app.py
-import sys
-import os
-
-# Add the parent directory to Python path
+import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Services.YoutubeService import YoutubeService
+from .VideoProcess import VideoProcess
 
 app = FastAPI()
 
 @app.get("/")
 def home():
-    youtube_service = YoutubeService()
-    full_transcript = youtube_service.getYoutubeVideoUrl("https://www.youtube.com/watch?v=Q81RR3yKn30&t=743s")
-    #return "Hello World"
-    return full_transcript
+    video_url = "https://www.youtube.com/watch?v=Q81RR3yKn30"
+    video_process = VideoProcess()
+    summary = video_process.summary(video_url)
+    
+    return summary

@@ -1,21 +1,13 @@
 from youtube_transcript_api import YouTubeTranscriptApi
-from YoutubeUtility.Utility import YoutubeUtility
+from YoutubeUtility.YoutubeUtility import YoutubeUtility
 from urllib.parse import urlparse, parse_qs
 
 class YoutubeService:
     def __init__(self):
-        self.token_size = 500
-        self.token_threshold = 5000
-        self.youtube_root = "https://www.youtube.com/watch"
         self.youtube_utility = YoutubeUtility()
-        
-    def checkValidURL(self, video_url : str = None):
-        if(not video_url.startswith(self.youtube_root)):
-            return ("error", self.youtube_utility.error_codes("ERR_2"))
-        else:
-            return ("success", True)
+        self.youtube_root = "https://www.youtube.com/watch"
     
-    def extractVideoIdFromUrl(self, video_url : str = None):
+    def extract_video_id(self, video_url):
         try:
             result = urlparse(video_url)
             if(all([result.scheme, result.netloc])):
@@ -29,41 +21,42 @@ class YoutubeService:
         except Exception as ex:
             return ("error", ex)
         
-    def videoTranscriptGen(self, video_id = None):
+    def get_video_transceipt(self, video_id : str = None):
         try:
-            yt_tr_api = YouTubeTranscriptApi()
-            video_transcript = yt_tr_api.fetch(video_id)
+            yrt = YouTubeTranscriptApi()
+            transcript = yrt.fetch(video_id)
+            transcript_list = transcript.to_raw_data()
+
+            # ✅ FIX: Create proper Document objects with page_content and metadata
+            documents = []
+            full_text = ""
+
+            for entry in transcript_list:
+                text = entry['text']
+                full_text += text + " "
             
-            full_transcript = ""
-            for snippets in video_transcript:
-                #print(snippets.text, end="\n")
-                full_transcript += snippets.text + " "
-            
-            return ("success", full_transcript)
+            return ("success", full_text)
         except Exception as ex:
-            print(f"execption = {ex}")
-            return ("error", "ERR_4")
-                
-    def generateChunks(self, full_transcript : str = None):
-        if(full_transcript == None):
-            return None
-        
+            print(f"{ex}")
+            return ("error", ex)
     
+    def check_valid_url(self, video_url : str = None):
+        if(not video_url.startswith(self.youtube_root)):
+            return ("error", self.youtube_utility.error_codes("ERR_2"))
+        else:
+            return ("success", True)
+        
     def process(self, video_url : str = None):
-        # 1. Check if URL is provided
-        if(video_url == None):
+        if(video_url == None or video_url == ""):
             return ("error", self.youtube_utility.error_codes("ERR_1"))
         
-        # 2. Check if URL is valid Youtube URL
-        (status, res) = self.checkValidURL(video_url)
+        (status, res) = self.check_valid_url(video_url)
         if(status == "error"):
             return (status, res)
         
-        # 3. Extract Video ID from URL
-        (status, res) = self.extractVideoIdFromUrl(video_url)
+        (status, res) = self.extract_video_id(video_url)
         if(status == "error"):
             return (status, res)
         
-        # 4. Generate Long text video transcript
-        (status, res) = self.videoTranscriptGen(res)
+        (status, res) = self.get_video_transceipt(res)
         return (status, res)

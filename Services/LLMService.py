@@ -28,7 +28,7 @@ class LLMService:
         self.youtube_utility = YoutubeUtility()
         
         # Config for Sliding window sentence chunking
-        self.window = 4
+        self.window = 1
         
     def generateSentencePunct(self, raw_text : str = None):
         try:
@@ -77,44 +77,54 @@ class LLMService:
         
     def generateSummary(self, punctuated_text : str = None):
         try:
-            start, end = 0, 10
+            start, end = 0, -1
             sentence_list = punctuated_text.split(".")
             chunk_summary = list()
-            while(end < len(sentence_list)):
+            while((end < len(sentence_list)) or (end != -1)):
                 sent_chunk = sentence_list[start : end]
                 chunk = ".".join(sent_chunk)
                 
-                # Send the chunk to LLM for summarization
-                (status, res) = ("error", "test error")
-                # 1. LLamaLLM
-                #llama_llm = LLamaLLM()
-                #(status, res) = llama_llm.getLLMSummary(chunk)
-                # 2. Gemini LLM
-                #gemini_llm = GeminiLLM()
-                #(status, res) = gemini_llm.generateSummary(chunk)
-                # 3. FalconsAI
-                falcons_llm = FalconsLLM()
-                (status, res) = falcons_llm.generateSummary(chunk)
+                (status, res) = self.getLLMSummary(chunk)
                 if(status == "error"):
                     #raise Exception("LLM Service problem")
                     return ("error", res)
                 chunk_summary.append(res)
                 
                 # Set the start and end for the next set of sentence chunk
-                start += self.window
-                end += self.window
+                #start += self.window
+                #end += self.window
                 
                 # Reset condition
                 if(end >= len(sentence_list)):
-                    end = len(sentence_list) - 1
+                    end = len(sentence_list)
             
             # Get Summary for the List of Chunk Summaries from LLM
-            final_summary = self.getLLMSummary("".join(chunk_summary))
-            print(f"Final Summary = \n{final_summary}")
+            print(f"Chunk Combined summary = \n{''.join(chunk_summary)}")
+            (status, res) = self.getLLMSummary("".join(chunk_summary))
             
-            return ("success", final_summary)
+            print(f"Final Summary = \n{res}")
+            
+            return (status, res)
         except Exception as ex:
             print(ex)
+            return ("error", ex)
+    
+    def getLLMSummary(self, text : str):
+        try:
+            # Send the chunk to LLM for summarization
+            (status, res) = ("error", "test error") # Default case
+            # 1. LLamaLLM
+            #llama_llm = LLamaLLM()
+            #(status, res) = llama_llm.getLLMSummary(chunk)
+            # 2. Gemini LLM
+            #gemini_llm = GeminiLLM()
+            #(status, res) = gemini_llm.generateSummary(chunk)
+            # 3. FalconsAI
+            falcons_llm = FalconsLLM()
+            (status, res) = falcons_llm.generateSummary(text)
+            return (status, res)
+        except Exception as ex:
+            print(f"{ex}")
             return ("error", ex)
     
     def process(self, raw_text : str = None):

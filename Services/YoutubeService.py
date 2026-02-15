@@ -1,6 +1,7 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from YoutubeUtility.YoutubeUtility import YoutubeUtility
 from urllib.parse import urlparse, parse_qs
+from pytube import YouTube
 
 class YoutubeService:
     def __init__(self):
@@ -20,14 +21,24 @@ class YoutubeService:
                     return ("error", self.youtube_utility.error_codes("ERR_3"))
         except Exception as ex:
             return ("error", ex)
-        
+    
+    def extract_video_title(self, video_url):
+        try:
+            result = urlparse(video_url)
+            if(all([result.scheme, result.netloc])):
+                yt = YouTube(video_url)
+                return ("success", yt.title)
+            return ("error", "No video title")
+        except Exception as ex:
+            return ("error", ex)
+    
     def get_video_transceipt(self, video_id : str = None):
         try:
             yrt = YouTubeTranscriptApi()
             transcript = yrt.fetch(video_id)
             transcript_list = transcript.to_raw_data()
 
-            # ✅ FIX: Create proper Document objects with page_content and metadata
+            # Create proper Document objects with page_content and metadata
             documents = []
             full_text = ""
 

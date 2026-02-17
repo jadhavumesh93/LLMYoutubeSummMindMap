@@ -8,8 +8,9 @@ import streamlit as st
 from EntryPoint import EntryPoint
 
 st.title('Retrieval-Augmented Video Knowledge Engine')
-st.write("Note: - Since the developer is keen on reducing infrastructure costs, the next time you access this space, you may not receive desired response. Since the HuggingFace space is based on serverless architecture, the storage is non-persistent. Hence any video that you upload may not be acquired by the system for long time.")
+st.write("Note: - Since the developer is keen on reducing infrastructure costs, the next time you access this space, you may not receive desired response. Since the Production space is based on serverless architecture, the storage is non-persistent. Hence any video that you upload may not be acquired by the system for long time.")
 st.write("However, once you access the space, you may work with numerous Youtube videos while querying for the previous videos questions as well. P.S. Due to the limitations of the Space, a valid URL will always be required (does not matter if you ask questions for the previous any video that you worked upon) or You may get URL required error.")
+st.write("The results may take extremely long to be fetched since Youtube is blocking the requests. As a work around, a proxy server is used.")
 
 video_url = st.text_input("Enter Youtube video URL", placeholder="Example - https://www.youtube.com/watch?v=RNF0FvRjGZk")
 question = st.text_input("Enter your question for the video", placeholder="Example - What is the video about?")

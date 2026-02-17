@@ -16,12 +16,12 @@ class EntryPoint:
             return ("error", "Please enter Question")
         print("1.B Success")
         # 2. Get Transcript for the Video
-        yt_service = YoutubeService()
-        (status, video_valid) = yt_service.check_valid_url(video_url)
+        yt_service = YoutubeService(video_url)
+        (status, video_valid) = yt_service.check_valid_url()
         if(status == "error"):
             return (status, video_valid)
         print("2.A Success")
-        (status, video_id) = yt_service.extract_video_id(video_url)
+        (status, video_id) = yt_service.extract_video_id()
         if(status == "error"):
             return (status, video_id)
         print("2.B Success")
@@ -29,7 +29,7 @@ class EntryPoint:
         if(status == "error"):
             return (status, video_title)
         '''
-        (status, transcript) = yt_service.process(video_url)
+        (status, transcript) = yt_service.process()
         if(status == "error"):
             return (status, transcript)
         print("2.C Success")

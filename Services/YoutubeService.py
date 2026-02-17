@@ -1,22 +1,24 @@
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 from YoutubeUtility.YoutubeUtility import YoutubeUtility
 from urllib.parse import urlparse, parse_qs
 #from pytube import YouTube
 import requests
 
 class YoutubeService:
-    def __init__(self):
+    def __init__(self, video_url):
         self.youtube_utility = YoutubeUtility()
         self.youtube_root = "https://www.youtube.com/watch"
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0"
         })
+        self.video_url = video_url
 
     
-    def extract_video_id(self, video_url):
+    def extract_video_id(self):
         try:
-            result = urlparse(video_url)
+            result = urlparse(self.video_url)
             if(all([result.scheme, result.netloc])):
                 vid_que_str : dict = parse_qs(result.query)
                 if(vid_que_str.keys().__contains__("v")):
@@ -28,11 +30,11 @@ class YoutubeService:
         except Exception as ex:
             return ("error", ex)
     
-    def extract_video_title(self, video_url):
+    def extract_video_title(self):
         try:
             endpoint = "https://www.youtube-nocookie.com/oembed"
             params = {
-                "url": video_url,
+                "url": self.video_url,
                 "format": "json"
             }
 
@@ -61,10 +63,15 @@ class YoutubeService:
     
     def get_video_transcript(self, video_id : str = None):
         try:
+            print("transcript 1")
+            #yrt = YouTubeTranscriptApi(proxy_config=WebshareProxyConfig(proxy_username="lyvwipom", proxy_password="02i9mix8en65", proxy_port=6754))
             yrt = YouTubeTranscriptApi()
+            print("transcript 2")
+            print(f"Video Id = {video_id}")
             transcript = yrt.fetch(video_id)
+            print("transcript 3")
             transcript_list = transcript.to_raw_data()
-
+            print("transcript 4")
             # Create proper Document objects with page_content and metadata
             documents = []
             full_text = ""
@@ -78,24 +85,29 @@ class YoutubeService:
             print(f"{ex}")
             return ("error", ex)
     
-    def check_valid_url(self, video_url : str = None):
-        if(not video_url.startswith(self.youtube_root)):
-            print(f"Valid URL = {video_url.startswith(self.youtube_root)}")
+    def check_valid_url(self):
+        if(not self.video_url.startswith(self.youtube_root)):
+            print(f"Valid URL = {self.video_url.startswith(self.youtube_root)}")
             return ("error", self.youtube_utility.error_codes("ERR_2"))
         else:
             return ("success", True)
         
-    def process(self, video_url : str = None):
-        if(video_url == None or video_url == ""):
+    def process(self):
+        print("Called process")
+        if(self.video_url == None or self.video_url == ""):
             return ("error", self.youtube_utility.error_codes("ERR_1"))
         
-        (status, res) = self.check_valid_url(video_url)
+        print("Called process 1")
+        (status, res) = self.check_valid_url()
         if(status == "error"):
             return (status, res)
         
-        (status, res) = self.extract_video_id(video_url)
+        print("Called process 2")
+        (status, res) = self.extract_video_id()
         if(status == "error"):
             return (status, res)
         
+        print("Called process 3")
         (status, res) = self.get_video_transcript(res)
+        print("Called process 4")
         return (status, res)

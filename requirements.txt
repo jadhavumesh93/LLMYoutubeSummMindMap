@@ -1,0 +1,9 @@
+langchain_chroma==1.1.0
+langchain_community==0.4.1
+langchain_core==1.2.13
+langchain_google_genai==4.2.0
+langchain_text_splitters==1.1.0
+python-dotenv==1.2.1
+Requests==2.32.5
+streamlit==1.54.0
+youtube_transcript_api==1.2.4

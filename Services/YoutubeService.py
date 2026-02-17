@@ -1,12 +1,18 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from YoutubeUtility.YoutubeUtility import YoutubeUtility
 from urllib.parse import urlparse, parse_qs
-from pytube import YouTube
+#from pytube import YouTube
+import requests
 
 class YoutubeService:
     def __init__(self):
         self.youtube_utility = YoutubeUtility()
         self.youtube_root = "https://www.youtube.com/watch"
+        self.session = requests.Session()
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0"
+        })
+
     
     def extract_video_id(self, video_url):
         try:
@@ -24,15 +30,36 @@ class YoutubeService:
     
     def extract_video_title(self, video_url):
         try:
+            endpoint = "https://www.youtube-nocookie.com/oembed"
+            params = {
+                "url": video_url,
+                "format": "json"
+            }
+
+            response = requests.get(endpoint, params=params, timeout=10)
+            data = response.json()
+            print(f"Video Title = {data['title']}")
+            return ("success", data["title"])
+        
+        except Exception as ex:
+            #return ("error", ex)
+            return ("error", "Youtube Title")
+    
+    # Commented because PyTube not giving Video Title
+    '''
+    def extract_video_title(self, video_url):
+        try:
             result = urlparse(video_url)
             if(all([result.scheme, result.netloc])):
                 yt = YouTube(video_url)
+                print(f"yt = {yt.metadata} | {yt._title}")
                 return ("success", yt.title)
             return ("error", "No video title")
         except Exception as ex:
             return ("error", ex)
+    '''
     
-    def get_video_transceipt(self, video_id : str = None):
+    def get_video_transcript(self, video_id : str = None):
         try:
             yrt = YouTubeTranscriptApi()
             transcript = yrt.fetch(video_id)
@@ -53,6 +80,7 @@ class YoutubeService:
     
     def check_valid_url(self, video_url : str = None):
         if(not video_url.startswith(self.youtube_root)):
+            print(f"Valid URL = {video_url.startswith(self.youtube_root)}")
             return ("error", self.youtube_utility.error_codes("ERR_2"))
         else:
             return ("success", True)
@@ -69,5 +97,5 @@ class YoutubeService:
         if(status == "error"):
             return (status, res)
         
-        (status, res) = self.get_video_transceipt(res)
+        (status, res) = self.get_video_transcript(res)
         return (status, res)
